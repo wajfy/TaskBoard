@@ -21,7 +21,6 @@ async function handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
     }
-    // 204 No Content nemá tělo, JSON parsovat nejde
     if (response.status === 204) {
         return undefined as T
     }
@@ -30,6 +29,10 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 export function getProjects(): Promise<Project[]> {
     return fetch(BASE_URL).then((r) => handleResponse<Project[]>(r))
+}
+
+export function getProject(id: number): Promise<Project> {
+    return fetch(`${BASE_URL}/${id}`).then((r) => handleResponse<Project>(r))
 }
 
 export function createProject(input: CreateProjectInput): Promise<Project> {

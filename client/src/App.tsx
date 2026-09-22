@@ -1,31 +1,17 @@
-import { useEffect, useState } from 'react'
-import { ProjectsList } from './components/ProjectsList'
-
-type Ping = { message: string; serverTime: string }
+import { Routes, Route } from 'react-router-dom'
+import { ProjectsPage } from './pages/ProjectsPage'
+import { ProjectDetailPage } from './pages/ProjectDetailPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 
 function App() {
-  const [ping, setPing] = useState<Ping | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch('/api/ping')
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`)
-        return r.json()
-      })
-      .then(setPing)
-      .catch((e) => setError(e.message))
-  }, [])
-
-  if (error) return <p>Chyba: {error}</p>
-  if (!ping) return <p>Načítám…</p>
-
   return (
     <div>
       <h1>TaskBoard</h1>
-      <p>{ping.message}</p>
-      <p>{ping.serverTime}</p>
-      <ProjectsList/>
+      <Routes>
+        <Route path="/" element={<ProjectsPage />} />
+        <Route path="/projects/:id" element={<ProjectDetailPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </div>
   )
 }

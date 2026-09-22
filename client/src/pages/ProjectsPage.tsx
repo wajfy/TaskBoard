@@ -1,16 +1,18 @@
 import { useEffect, useState, type SubmitEvent } from 'react'
 import { createProject, getProjects, type Project, type CreateProjectInput, deleteProject } from '../api/projects'
+import { Link } from 'react-router-dom'
 
-export function ProjectsList() {
-    const [projects, setProjects] = useState<Project[]>([])
-    const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(true)
+export function ProjectsPage() {
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const [name, setName] = useState('')
-    const [description, setDescription] = useState('')
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
 
     function loadProjects() {
-        setLoading(true)
+        setLoading(true);
+        setError(null);
         getProjects()
             .then(setProjects)
             .catch((e) => setError(e.message))
@@ -18,29 +20,30 @@ export function ProjectsList() {
     }
 
     useEffect(() => {
-        loadProjects()
+        loadProjects();
     }, [])
 
     function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
-        e.preventDefault()
-
+        e.preventDefault();
+        setError(null);
         const input: CreateProjectInput = {
             name,
             description: description || null,
         }
-        
+
         createProject(input).then(() => {
             setName('');
             setDescription('');
             loadProjects();
-        }).catch((e) => setError(e.message))
+        }).catch((e) => setError(e.message));
     }
 
     function handleDelete(id: number) {
         if (!confirm('Opravdu smazat tento projekt?')) return
+        setError(null);
         deleteProject(id).then(() => {
             loadProjects();
-        }).catch((e) => setError(e.message))
+        }).catch((e) => setError(e.message));
     }
 
     if (loading) return <p>Načítám…</p>
@@ -54,6 +57,7 @@ export function ProjectsList() {
                     <li key={project.id}>
                         <strong>{project.name}</strong>
                         {project.description && ` – ${project.description}`}
+                        <Link to={`/projects/${project.id}`}>Detail</Link>
                         <button onClick={() => handleDelete(project.id)}>Smazat</button>
                     </li>
                 ))}
