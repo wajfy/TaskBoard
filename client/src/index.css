@@ -84,24 +84,25 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    color-scheme: dark;
+    --background: #1c2630;
+    --foreground: #e8eef4;
+    --card: rgb(255 255 255 / 0.06);
+    --card-foreground: #e8eef4;
+    --popover: rgb(24 33 42 / 0.78);
+    --popover-foreground: #e8eef4;
+    --primary: #7dd3fc;
+    --primary-foreground: #0c1a26;
+    --secondary: rgb(255 255 255 / 0.08);
+    --secondary-foreground: #e8eef4;
+    --muted: rgb(255 255 255 / 0.07);
+    --muted-foreground: #93a4b5;
+    --accent: rgb(255 255 255 / 0.10);
+    --accent-foreground: #e8eef4;
+    --destructive: #f87171;
+    --border: rgb(255 255 255 / 0.10);
+    --input: rgb(255 255 255 / 0.14);
+    --ring: #7dd3fc;
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -117,14 +118,35 @@
     --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* "Matné sklo": rozostření pozadí + jemný stín a horní odlesk. Barvu, ohraničení
+   a průhlednost pozadí si každý prvek řeší sám (bg-white/5, border-white/10, ...). */
+@utility glass {
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(18px) saturate(150%);
+    box-shadow:
+        0 10px 30px rgb(0 0 0 / 0.25),
+        inset 0 1px 0 rgb(255 255 255 / 0.10);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+    /* tenký, jemný posuvník ve stylu sklíčka (místo výchozího systémového) */
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.25) transparent;
+  }
   body {
-    @apply bg-background text-foreground;
-    }
+    @apply text-foreground;
+    min-height: 100vh;
+    background-color: var(--background);
+    /* vrstvy odshora: pluska -> dvě jemné barevné záře (ať má sklo co rozmazávat) */
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Cpath d='M18 14v8M14 18h8' stroke='%23324457' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E"),
+      radial-gradient(60rem 40rem at 8% -10%, rgb(56 189 248 / 0.12), transparent 60%),
+      radial-gradient(50rem 40rem at 100% 105%, rgb(167 139 250 / 0.12), transparent 60%);
+    background-attachment: fixed;
+  }
   html {
     @apply font-sans;
-    }
+  }
 }

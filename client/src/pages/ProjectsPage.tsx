@@ -1,81 +1,93 @@
-import { useState, type SubmitEvent } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { createProject, getProjects, deleteProject, type CreateProjectInput } from '../api/projects'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { Archive, ChevronRight } from 'lucide-react'
+import { cn } from 'cn'
+import { getProjects } from '../api/projects'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
+import { CreateProjectDialog } from '../components/CreateProjectDialog'
 
 export function ProjectsPage() {
-    const queryClient = useQueryClient()
+  const [showArchived, setShowArchived] = useState(false)
 
-    const { data: projects, isLoading, error } = useQuery({
-        queryKey: ['projects'],
-        queryFn: getProjects,
-    })
+  // klíč ['projects', 'list', ...] pokrývají invalidace přes prefix ['projects'];
+  // keepPreviousData drží starý seznam, dokud se nenačte druhý, ať přepínač neproblikává
+  const { data: projects, isLoading, error } = useQuery({
+    queryKey: ['projects', 'list', showArchived],
+    queryFn: () => getProjects(showArchived),
+    placeholderData: keepPreviousData,
+  })
 
-    const createMutation = useMutation({
-        mutationFn: createProject,
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
-    })
+  const tabs = [
+    { archived: false, label: 'Aktivní', icon: null },
+    { archived: true, label: 'Archiv', icon: <Archive /> },
+  ]
 
-    const deleteMutation = useMutation({
-        mutationFn: deleteProject,
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
-    })
-
-    const [name, setName] = useState('')
-    const [description, setDescription] = useState('')
-
-    function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
-        e.preventDefault()
-        const input: CreateProjectInput = { name, description: description || null }
-        createMutation.mutate(input, {
-            onSuccess: () => {
-                setName('')
-                setDescription('')
-            },
-        })
-    }
-
-    function handleDelete(id: number) {
-        if (!confirm('Opravdu smazat tento projekt?')) return
-        deleteMutation.mutate(id)
-    }
-
-    if (isLoading) return <p className="p-6 text-muted-foreground">Načítám…</p>
-    if (error) return <p className="p-6 text-destructive">Chyba: {error.message}</p>
-
-    return (
-        <div className="mx-auto max-w-4xl space-y-8 p-6">
-            <div>
-                <h2 className="mb-4 text-2xl font-semibold">Projekty</h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {(projects ?? []).map((project) => (
-                        <Card key={project.id}>
-                            <CardHeader>
-                                <CardTitle>{project.name}</CardTitle>
-                                {project.description && <CardDescription>{project.description}</CardDescription>}
-                            </CardHeader>
-                            <CardFooter className="gap-2">
-                                <Button variant="outline" size="sm" render={<Link to={`/projects/${project.id}`} />}>
-                                    Detail
-                                </Button>
-                                <Button variant="destructive" size="sm" onClick={() => handleDelete(project.id)}>
-                                    Smazat
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="max-w-sm space-y-3 rounded-lg border p-4">
-                <h3 className="font-medium">Nový projekt</h3>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Název projektu" required />
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Popis (nepovinné)" />
-                <Button type="submit" disabled={createMutation.isPending}>Vytvořit</Button>
-            </form>
+  return (
+    <div className="mx-auto max-w-6xl space-y-6 p-6">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Projekty</h2>
+          <p className="text-sm text-muted-foreground">
+            {showArchived ? 'Archivované projekty.' : 'Vyber projekt nebo založ nový.'}
+          </p>
         </div>
-    )
+        <CreateProjectDialog />
+      </div>
+
+      <div className="inline-flex gap-0.5 rounded-lg border border-white/10 bg-white/5 p-0.5" role="group" aria-label="Zobrazení projektů">
+        {tabs.map((tab) => (
+          <button
+            key={tab.label}
+            type="button"
+            aria-pressed={showArchived === tab.archived}
+            onClick={() => setShowArchived(tab.archived)}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-sm transition-colors [&_svg]:size-3.5',
+              showArchived === tab.archived
+                ? 'bg-white/15 font-medium text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {isLoading && <p className="text-muted-foreground">Načítám…</p>}
+      {error && <p className="text-destructive">Chyba: {error.message}</p>}
+
+      {!isLoading && !error && (projects ?? []).length === 0 && (
+        <div className="glass grid place-items-center rounded-2xl border border-dashed border-white/15 bg-white/[0.04] p-12 text-center text-sm text-muted-foreground">
+          {showArchived
+            ? 'V archivu nic není. Projekt archivuješ na jeho detailu.'
+            : 'Zatím tu nemáš žádný projekt. Založ první tlačítkem vpravo nahoře.'}
+        </div>
+      )}
+
+      {(projects ?? []).length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {(projects ?? []).map((project) => (
+            <Link
+              key={project.id}
+              to={`/projects/${project.id}`}
+              className="group block min-w-0 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <Card className="h-full transition-all group-hover:-translate-y-0.5 group-hover:border-white/25 group-hover:bg-white/[0.1]">
+                <CardHeader>
+                  <div className="flex min-w-0 items-center justify-between gap-2">
+                    <CardTitle className="min-w-0 truncate" title={project.name}>
+                      {project.name}
+                    </CardTitle>
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }

@@ -5,6 +5,7 @@ export type Project = {
     name: string
     description: string | null
     createdAt: string
+    isArchived: boolean
 }
 
 export type CreateProjectInput = {
@@ -29,8 +30,16 @@ async function handleResponse<T>(response: Response): Promise<T> {
     return response.json()
 }
 
-export function getProjects(): Promise<Project[]> {
-    return apiFetch(BASE_URL).then((r) => handleResponse<Project[]>(r))
+export function getProjects(archived = false): Promise<Project[]> {
+    return apiFetch(`${BASE_URL}?archived=${archived}`).then((r) => handleResponse<Project[]>(r))
+}
+
+export function archiveProject(id: number): Promise<void> {
+    return apiFetch(`${BASE_URL}/${id}/archive`, { method: 'POST' }).then((r) => handleResponse<void>(r))
+}
+
+export function unarchiveProject(id: number): Promise<void> {
+    return apiFetch(`${BASE_URL}/${id}/unarchive`, { method: 'POST' }).then((r) => handleResponse<void>(r))
 }
 
 export function getProject(id: number): Promise<Project> {

@@ -14,9 +14,9 @@ public class ProjectsController(IProjectService projectService) : ControllerBase
     private string CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
     [HttpGet]
-    public async Task<ActionResult<List<ProjectDto>>> GetAll()
+    public async Task<ActionResult<List<ProjectDto>>> GetAll([FromQuery] bool archived = false)
     {
-        return await projectService.GetAllAsync(CurrentUserId);
+        return await projectService.GetAllAsync(CurrentUserId, archived);
     }
 
     [HttpGet("{id}")]
@@ -49,5 +49,17 @@ public class ProjectsController(IProjectService projectService) : ControllerBase
             return NoContent();
         else
             return NotFound();
+    }
+
+    [HttpPost("{id}/archive")]
+    public async Task<IActionResult> Archive(int id)
+    {
+        return await projectService.SetArchivedAsync(CurrentUserId, id, true) ? NoContent() : NotFound();
+    }
+
+    [HttpPost("{id}/unarchive")]
+    public async Task<IActionResult> Unarchive(int id)
+    {
+        return await projectService.SetArchivedAsync(CurrentUserId, id, false) ? NoContent() : NotFound();
     }
 }

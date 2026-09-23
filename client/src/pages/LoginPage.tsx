@@ -1,6 +1,8 @@
 import { useState, type SubmitEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 export function LoginPage() {
   const { login } = useAuth()
@@ -23,27 +25,35 @@ export function LoginPage() {
   }
 
   return (
-    <div>
-      <h2>Přihlášení</h2>
-      {error && <p>Chyba: {error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="E-mail"
-          required
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Heslo"
-          required
-        />
-        <button type="submit" disabled={isSubmitting}>Přihlásit se</button>
-      </form>
-      <p>Nemáš účet? <Link to="/register">Zaregistruj se</Link></p>
+    <div className="grid min-h-screen place-items-center p-6">
+      <div className="glass w-full max-w-sm space-y-6 rounded-2xl border border-white/10 bg-white/[0.06] p-7">
+        <div className="space-y-2 text-center">
+          <div className="mx-auto grid size-10 place-items-center rounded-xl bg-primary/20 text-primary ring-1 ring-primary/30">
+            ✓
+          </div>
+          <h1 className="text-xl font-semibold tracking-tight">Přihlášení</h1>
+          <p className="text-sm text-muted-foreground">Vítej zpět v TaskBoardu.</p>
+        </div>
+
+        {error && (
+          <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</p>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <Input className="h-9" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" required />
+          <Input className="h-9" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Heslo" required />
+          <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+            Přihlásit se
+          </Button>
+        </form>
+
+        <p className="text-center text-sm text-muted-foreground">
+          Nemáš účet?{' '}
+          <Link to="/register" className="text-primary hover:underline">
+            Zaregistruj se
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }
