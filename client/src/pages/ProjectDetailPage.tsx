@@ -1,64 +1,54 @@
-import { useEffect, useState, type SubmitEvent } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getProject, type Project } from '../api/projects'
-import { getTasks, createTask, type TaskItem, type CreateTaskInput, deleteTask } from '../api/tasks'
+import { getProject } from '../api/projects'
+import { getTasks, createTask, type CreateTaskInput, deleteTask } from '../api/tasks'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export function ProjectDetailPage() {
   const { id } = useParams()
   const projectId = Number(id)
 
-  const [project, setProject] = useState<Project | null>(null)
-  const [tasks, setTasks] = useState<TaskItem[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
 
-  function loadTasks() {
-    setLoading(true);
-    setError(null);
-    getTasks(projectId)
-      .then(setTasks)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false))
-  }
+  const queryClient = useQueryClient()
+
+
+  const { data: project, isLoading: projectLoading, error: projectError } = useQuery({ queryKey: ['projects', projectId], queryFn: () => getProject(projectId) })
+  const { data: tasks, isLoading: tasksLoading, error: tasksError } = useQuery({ queryKey: ['projects', projectId, 'tasks'], queryFn: () => getTasks(projectId) })
+
+  const createTaskMutation = useMutation({
+    mutationFn: (input: CreateTaskInput) => createTask(projectId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'tasks'] })
+    },
+  })
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (id: number) => deleteTask(projectId, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'tasks'] })
+    },
+  })
 
   function handleCreateTask(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
     const input: CreateTaskInput = {
       title,
       description: description || null,
     }
 
-    createTask(projectId, input).then(() => {
-      setTitle('');
-      setDescription('');
-      loadTasks();
-    }).catch((e) => setError(e.message))
+    createTaskMutation.mutate(input);
   }
 
-  function handleDelete(projectId: number, id: number) {
+  function handleDeleteTask(id: number) {
     if (!confirm('Opravdu smazat tento ukol?')) return
-    setError(null);
-    deleteTask(projectId, id).then(() => {
-      loadTasks();
-    }).catch((e) => setError(e.message))
+    deleteTaskMutation.mutate(id);
   }
 
-  useEffect(() => {
-    Promise.all([getProject(projectId), getTasks(projectId)])
-      .then(([projectData, tasksData]) => {
-        setProject(projectData)
-        setTasks(tasksData)
-      })
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false))
-  }, [projectId])
-
-  if (loading) return <p>Načítám…</p>
-  if (error) return <p>Chyba: {error}</p>
+  if (projectLoading || tasksLoading) return <p>Načítám…</p>
+  if (projectError) return <p>Chyba: {projectError.message}</p>
+  if (tasksError) return <p>Chyba: {tasksError.message}</p>
   if (!project) return <p>Projekt nenalezen.</p>
 
   return (
@@ -69,10 +59,10 @@ export function ProjectDetailPage() {
 
       <h3>Úkoly</h3>
       <ul>
-        {tasks.map((task) => (
+        {(tasks ?? []).map((task) => (
           <li key={task.id}>
             {task.title} — {task.status}
-            <button onClick={() => handleDelete(projectId, task.id)}>Smazat</button>
+            <button onClick={() => handleDeleteTask(task.id)}>Smazat</button>
           </li>
         ))}
       </ul>
@@ -88,7 +78,7 @@ export function ProjectDetailPage() {
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Popis (nepovinné)"
         />
-        <button type="submit">Vytvořit</button>
+        <button type="submit" disabled={createTaskMutation.isPending}>Vytvořit</button>
       </form>
     </div>
   )
