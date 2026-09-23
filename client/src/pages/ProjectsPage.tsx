@@ -10,8 +10,6 @@ import { CreateProjectDialog } from '../components/CreateProjectDialog'
 export function ProjectsPage() {
   const [showArchived, setShowArchived] = useState(false)
 
-  // klíč ['projects', 'list', ...] pokrývají invalidace přes prefix ['projects'];
-  // keepPreviousData drží starý seznam, dokud se nenačte druhý, ať přepínač neproblikává
   const { data: projects, isLoading, error } = useQuery({
     queryKey: ['projects', 'list', showArchived],
     queryFn: () => getProjects(showArchived),

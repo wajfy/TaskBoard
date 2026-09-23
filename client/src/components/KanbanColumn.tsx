@@ -46,7 +46,6 @@ export function KanbanColumn({ status, tasks, onDeleteTask, onOpenTask }: Kanban
       ref={setNodeRef}
       className={cn(
         'glass relative flex min-h-[320px] flex-col gap-2 rounded-2xl border p-3 transition-colors',
-        // sloupec s taženou kartou musí být nad ostatními (backdrop-filter dělá vlastní vrstvu)
         'has-[[data-dragging=true]]:z-30',
         isOver ? s.over : s.column
       )}

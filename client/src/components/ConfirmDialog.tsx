@@ -22,8 +22,6 @@ type ConfirmDialogProps = {
   errorMessage?: string | null
 }
 
-// Potvrzení nevratné akce. Dialog řídí rodič (open/onOpenChange) a sám se po potvrzení
-// nezavírá: zavře ho rodič, až akce uspěje (při chybě zůstane otevřený a ukáže hlášku).
 export function ConfirmDialog({
   open,
   onOpenChange,

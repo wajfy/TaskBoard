@@ -23,11 +23,9 @@ export function EditProjectDialog({ project }: { project: Project }) {
 
   const updateMutation = useMutation({
     mutationFn: () => updateProject(project.id, { name, description: description || null }),
-    // klíč ['projects'] pokrývá seznam i detail (a jeho úkoly)
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   })
 
-  // při otevření vždy načti aktuální hodnoty (zahodí neuložené úpravy z minula)
   function handleOpenChange(next: boolean) {
     if (next) {
       setName(project.name)

@@ -26,8 +26,6 @@ type TaskDetailDialogProps = {
   onOpenChange: (open: boolean) => void
 }
 
-// Stav formuláře se inicializuje z `task` jen při vytvoření komponenty,
-// proto ji rodič vykresluje s `key={task.id}` (viz ProjectDetailPage).
 export function TaskDetailDialog({ task, projectId, open, onOpenChange }: TaskDetailDialogProps) {
   const queryClient = useQueryClient()
   const [title, setTitle] = useState(task.title)

@@ -36,7 +36,6 @@ export function ProjectDetailPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
   })
 
-  // archivace se dá vrátit, takže bez potvrzení; na stránce zůstaneš a uvidíš změnu (štítek + ikona)
   const archiveMutation = useMutation({
     mutationFn: (archived: boolean) => (archived ? archiveProject(projectId) : unarchiveProject(projectId)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
@@ -45,7 +44,6 @@ export function ProjectDetailPage() {
   const deleteProjectMutation = useMutation({
     mutationFn: () => deleteProject(projectId),
     onSuccess: () => {
-      // smazaný projekt už nesmí nikdo znovu načítat (dostali bychom 404)
       queryClient.removeQueries({ queryKey: ['projects', projectId] })
       queryClient.invalidateQueries({ queryKey: ['projects', 'list'] })
       navigate('/')
@@ -56,10 +54,8 @@ export function ProjectDetailPage() {
 
   const [pendingMove, setPendingMove] = useState<{ id: number; status: TaskStatus } | null>(null)
 
-  // `key` se mění při každém otevření, aby formulář v dialogu vždy začínal od aktuálních dat
   const [detail, setDetail] = useState<{ task: TaskItem; open: boolean; key: number } | null>(null)
 
-  // potvrzovací dialogy; u úkolu držíme `task` i po zavření, ať text nezmizí během animace
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false)
   const [taskToDelete, setTaskToDelete] = useState<{ task: TaskItem; open: boolean } | null>(null)
 
