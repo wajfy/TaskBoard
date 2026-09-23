@@ -1,3 +1,5 @@
+import { apiFetch } from './client'
+
 export type Project = {
     id: number
     name: string
@@ -28,15 +30,15 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export function getProjects(): Promise<Project[]> {
-    return fetch(BASE_URL).then((r) => handleResponse<Project[]>(r))
+    return apiFetch(BASE_URL).then((r) => handleResponse<Project[]>(r))
 }
 
 export function getProject(id: number): Promise<Project> {
-    return fetch(`${BASE_URL}/${id}`).then((r) => handleResponse<Project>(r))
+    return apiFetch(`${BASE_URL}/${id}`).then((r) => handleResponse<Project>(r))
 }
 
 export function createProject(input: CreateProjectInput): Promise<Project> {
-    return fetch(BASE_URL, {
+    return apiFetch(BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),
@@ -44,11 +46,11 @@ export function createProject(input: CreateProjectInput): Promise<Project> {
 }
 
 export function deleteProject(id: number): Promise<void> {
-    return fetch(`${BASE_URL}/${id}`, { method: 'DELETE' }).then((r) => handleResponse<void>(r))
+    return apiFetch(`${BASE_URL}/${id}`, { method: 'DELETE' }).then((r) => handleResponse<void>(r))
 }
 
 export function updateProject(id: number, input: UpdateProjectInput): Promise<void> {
-    return fetch(`${BASE_URL}/${id}`, {
+    return apiFetch(`${BASE_URL}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),

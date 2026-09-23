@@ -14,7 +14,6 @@ public class TaskItem
     public string? Description { get; set; }
     public TaskItemStatus Status { get; set; } = TaskItemStatus.Todo;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-
     public int ProjectId { get; set; }
     public Project Project { get; set; } = null!;
 }
