@@ -5,24 +5,24 @@ namespace TaskBoard.Api.Services;
 
 public class TaskService(AppDbContext db) : ITaskService
 {
-    public async Task<List<TaskItemDto>> GetAllAsync(int projectId)
+    public async Task<List<TaskItemDto>> GetAllAsync(string userId, int projectId)
     {
         return await db.Tasks
             .AsNoTracking()
-            .Where(t => t.ProjectId == projectId)
+            .Where(t => t.ProjectId == projectId && t.Project.UserId == userId)
             .Select(t => new TaskItemDto(t.Id, t.Title, t.Description, t.Status, t.CreatedAt, t.ProjectId))
             .ToListAsync();
     }
 
-    public async Task<TaskItemDto?> GetByIdAsync(int projectId, int id)
+    public async Task<TaskItemDto?> GetByIdAsync(string userId, int projectId, int id)
     {
-        var task = await db.Tasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id && t.ProjectId == projectId);
+        var task = await db.Tasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id && t.ProjectId == projectId && t.Project.UserId == userId);
         return task is null ? null : new TaskItemDto(task.Id, task.Title, task.Description, task.Status, task.CreatedAt, task.ProjectId);
     }
 
-    public async Task<TaskItemDto?> CreateAsync(int projectId, CreateTaskItemDto dto)
+    public async Task<TaskItemDto?> CreateAsync(string userId, int projectId, CreateTaskItemDto dto)
     {
-        if (!await db.Projects.AnyAsync(p => p.Id == projectId))
+        if (!await db.Projects.AnyAsync(p => p.Id == projectId && p.UserId == userId))
             return null;
 
         var entity = new TaskItem { Title = dto.Title, Description = dto.Description, Status = dto.Status, ProjectId = projectId };
@@ -31,9 +31,9 @@ public class TaskService(AppDbContext db) : ITaskService
         return new TaskItemDto(entity.Id, entity.Title, entity.Description, entity.Status, entity.CreatedAt, entity.ProjectId);
     }
 
-    public async Task<bool> UpdateAsync(int projectId, int id, UpdateTaskItemDto dto)
+    public async Task<bool> UpdateAsync(string userId, int projectId, int id, UpdateTaskItemDto dto)
     {
-        var entity = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.ProjectId == projectId);
+        var entity = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.ProjectId == projectId && t.Project.UserId == userId);
         if (entity is null) return false;
 
         entity.Title = dto.Title;
@@ -43,9 +43,9 @@ public class TaskService(AppDbContext db) : ITaskService
         return true;
     }
 
-    public async Task<bool> DeleteAsync(int projectId, int id)
+    public async Task<bool> DeleteAsync(string userId, int projectId, int id)
     {
-        var entity = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.ProjectId == projectId);
+        var entity = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.ProjectId == projectId && t.Project.UserId == userId);
         if (entity is null) return false;
 
         db.Tasks.Remove(entity);
