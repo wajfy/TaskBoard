@@ -9,7 +9,7 @@ export function NotFoundPage() {
         <p className="text-5xl font-semibold tracking-tight text-primary">404</p>
         <h1 className="text-lg font-medium">Stránka nenalezena</h1>
         <p className="text-sm text-muted-foreground">Tahle adresa neexistuje.</p>
-        <Button variant="outline" render={<Link to="/" />}>
+        <Button variant="outline" nativeButton={false} render={<Link to="/" />}>
           <ArrowLeft /> Zpět na projekty
         </Button>
       </div>

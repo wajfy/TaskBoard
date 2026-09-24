@@ -1,16 +1,7 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import * as authApi from '../api/auth'
+import { AuthContext } from './context'
 import { tokenStorage } from './tokenStorage'
-
-type AuthContextValue = {
-  accessToken: string | null
-  isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string) => Promise<void>
-  logout: () => void
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(tokenStorage.getAccessToken())
@@ -41,10 +32,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth musí být použito uvnitř AuthProvider')
-  return ctx
 }

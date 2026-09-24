@@ -115,6 +115,7 @@ export function ProjectDetailPage() {
           className="-ml-2"
           aria-label="Zpět na projekty"
           title="Zpět na projekty"
+          nativeButton={false}
           render={<Link to="/" />}
         >
           <ArrowLeft />
