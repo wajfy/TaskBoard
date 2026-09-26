@@ -70,6 +70,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+}
+
 app.Run();
 
 public partial class Program { }
