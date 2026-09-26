@@ -253,4 +253,49 @@ public class ProjectTests(ApiFactory factory)
         var tasks = await client.GetFromJsonAsync<List<TaskItemDto>>($"/api/projects/{survivor.Id}/tasks", Json.Options);
         Assert.Single(tasks!);
     }
+
+    [Fact]
+    public async Task Create_with_too_long_description_returns_400()
+    {
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.PostAsJsonAsync("/api/projects", new { name = "Projekt", description = new string('x', 501) });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Create_with_description_of_maximum_length_is_accepted()
+    {
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.PostAsJsonAsync("/api/projects", new { name = "Projekt", description = new string('x', 500) });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Update_with_too_long_description_returns_400_and_keeps_the_old_one()
+    {
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var created = await client.PostAsJsonAsync("/api/projects", new { name = "Projekt", description = "Původní" });
+        var project = (await created.Content.ReadFromJsonAsync<ProjectDto>(Json.Options))!;
+
+        var response = await client.PutAsJsonAsync($"/api/projects/{project.Id}", new { name = "Projekt", description = new string('x', 501) });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var detail = await client.GetFromJsonAsync<ProjectDto>($"/api/projects/{project.Id}", Json.Options);
+        Assert.Equal("Původní", detail!.Description);
+    }
+
+    [Fact]
+    public async Task Update_with_description_of_maximum_length_is_accepted()
+    {
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var project = await client.CreateProjectAsync();
+
+        var response = await client.PutAsJsonAsync($"/api/projects/{project.Id}", new { name = "Projekt", description = new string('x', 500) });
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
 }

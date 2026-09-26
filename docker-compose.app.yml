@@ -1,0 +1,22 @@
+services:
+  api:
+    build:
+      context: src/TaskBoard.Api
+    environment:
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=taskboard;Username=taskboard;Password=taskboard"
+      Jwt__Key: "${JWT_KEY:?JWT_KEY musi byt nastaveny, viz .env.example}"
+      Database__MigrateOnStartup: "true"
+      Logging__LogLevel__Microsoft.EntityFrameworkCore: "Warning"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: client
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    depends_on:
+      - api
+    restart: unless-stopped
